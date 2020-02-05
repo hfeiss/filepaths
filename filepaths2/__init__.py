@@ -2,7 +2,15 @@ import os
 from addict import Dict
 
 
-class BadDirectoryName(Exception):
+class Error(Exception):
+    pass
+
+
+class BadDirectoryName(Error):
+    pass
+
+
+class BadDepth(Error):
     pass
 
 
@@ -48,9 +56,11 @@ class Root():
         self.set_basepath()
 
     def set_basepath(self):
-        if self.depth:
+        if self.depth >= 0:
             for _ in range(self.depth):
                 os.chdir('..')
+        else:
+            raise BadDepth('Depth must be >= 0')
 
         self.basepath = os.path.abspath('')
 
@@ -58,6 +68,16 @@ class Root():
         return path_recursion(self.basepath, self.ignore_hidden)
 
 
+def paths(depth=1, ignore_hidden=True):
+    return Root(depth=depth, ignore_hidden=True).paths()
+
+
 if __name__ == "__main__":
+    
     root = Root(0).paths()
-    print(root.testfolder.insidetest.filepaths)
+    print(type(root))
+    print(root.files)
+
+    paths = paths(0)
+    print(type(paths))
+    print(paths.files)
