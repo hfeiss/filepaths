@@ -14,7 +14,7 @@ from filepaths import paths
 
 paths = paths(1)
 
-for file in paths.data.filepaths():
+for file in paths.data.filepaths:
     pd.read_csv(file)
     pass
 ```
