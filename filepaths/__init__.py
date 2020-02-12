@@ -2,30 +2,30 @@ import os
 from addict import Dict
 
 
-class Error(Exception):
+class _Error(Exception):
     pass
 
 
-class BadDirectoryName(Error):
+class _BadDirectoryName(_Error):
     pass
 
 
-class BadDepth(Error):
+class _BadDepth(_Error):
     pass
 
 
-def path_recursion(path, ignore_hidden=True):
+def _path_recursion(given_path, ignore_hidden=True):
     result = Dict()
-    root = [x for x in os.walk(path)][0][0]
-    dirs = [x for x in os.walk(path)][0][1]
-    all_files = [x for x in os.walk(path)][0][2]
+    path = [x for x in os.walk(given_path)][0][0]
+    dirs = [x for x in os.walk(given_path)][0][1]
+    all_files = [x for x in os.walk(given_path)][0][2]
 
     exceptions = ['files', 'dirs', 'path', 'filepaths']
     for exception in exceptions:
         if exception in dirs:
-            raise BadDirectoryName('\nUse of '
-                                   f'"{exception}" '
-                                   'as a directory name is ambiguous.')
+            raise _BadDirectoryName('\nUse of '
+                                    f'"{exception}" '
+                                    'as a directory name is ambiguous.')
 
     if ignore_hidden:
         files = [f for f in all_files if f[0] != '.' and f[0] != '_']
@@ -33,51 +33,60 @@ def path_recursion(path, ignore_hidden=True):
     else:
         files = all_files
 
-    result['files'] = files
-    result['path'] = root
-    result['dirs'] = dirs
     filepaths = []
     if len(files):
         for file in files:
-            filepaths.append(os.path.join(root, file))
+            filepaths.append(os.path.join(given_path, file))
+
+    result['files'] = files
+    result['path'] = path + '/'
+    result['dirs'] = dirs
     result['filepaths'] = filepaths
 
     for folder in dirs:
-        result[folder] = path_recursion(os.path.join(root, folder))
+        result[folder] = _path_recursion(os.path.join(path, folder),
+                                         ignore_hidden)
 
     return result
 
 
-class Root():
+class Root(object):
 
-    def __init__(self, depth=1, ignore_hidden=True):
+    def __init__(self,
+                 depth=0,
+                 ignore_hidden=True,
+                 alt_path=False):
+
         self.depth = depth
         self.ignore_hidden = ignore_hidden
-        self.set_basepath()
 
-    def set_basepath(self):
-        if self.depth >= 0:
-            for _ in range(self.depth):
-                os.chdir('..')
+        if alt_path:
+            self.basepath = alt_path
         else:
-            raise BadDepth('Depth must be >= 0')
+            self._set_basepath()
 
-        self.basepath = os.path.abspath('')
+    def _set_basepath(self):
+
+        self.basepath = os.path.dirname(os.path.abspath(__file__))
+
+        if self.depth < 0 or type(self.depth) != int:
+            raise _BadDepth('Depth must be int >= 0')
+
+        if self.depth:
+            for _ in range(self.depth):
+                self.basepath = os.path.split(self.basepath)[0]
 
     def paths(self):
-        return path_recursion(self.basepath, self.ignore_hidden)
-
-
-def paths(depth=1, ignore_hidden=True):
-    return Root(depth=depth, ignore_hidden=True).paths()
+        return _path_recursion(self.basepath, self.ignore_hidden)
 
 
 if __name__ == "__main__":
-    
-    root = Root(0).paths()
-    print(type(root))
-    print(root.files)
+    root2 = Root(2).paths()
+    print(root2.path)
 
-    paths = paths(0)
-    print(type(paths))
-    print(paths.files)
+    root1 = Root(1).paths()
+    print(root1.path)
+
+    root0 = Root(0).paths()
+    print(root0.path)
+    print(root0.testdir.testsubdir.filepaths)
