@@ -5,6 +5,7 @@ __pycache__/
 ~$*
 
 /data
+/tests
 .DS_Store
 
 # C extensions

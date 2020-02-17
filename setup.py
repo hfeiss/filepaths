@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='filepaths',
-    version="0.0.5",
+    version="0.0.7",
     author='Hunter Feiss',
     author_email='hfeiss@gmail.com',
     description='Root-agnostic filepath generation',

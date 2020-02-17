@@ -14,8 +14,14 @@ class _BadDepth(_Error):
     pass
 
 
+class _BadPath(_Error):
+    pass
+
+
 def _path_recursion(given_path, ignore_hidden=True):
+
     result = Dict()
+
     path = [x for x in os.walk(given_path)][0][0]
     dirs = [x for x in os.walk(given_path)][0][1]
     all_files = [x for x in os.walk(given_path)][0][2]
@@ -53,26 +59,30 @@ def _path_recursion(given_path, ignore_hidden=True):
 class Root(object):
 
     def __init__(self,
+                 file=None,
                  depth=0,
                  ignore_hidden=True,
                  alt_path=False):
 
-        self.depth = depth
+        self.file = file
+        self.depth = depth + 1
         self.ignore_hidden = ignore_hidden
 
-        if alt_path:
+        if alt_path and not file:
             self.basepath = alt_path
-        else:
+        elif file and not alt_path:
             self._set_basepath()
+        else:
+            raise _BadPath('Must specify root path or pass in'
+                           ' file=__file__')
 
     def _set_basepath(self):
 
-        self.basepath = os.path.dirname(os.path.abspath(__file__))
+        self.basepath = os.path.abspath(self.file)
 
         if self.depth < 0 or type(self.depth) != int:
             raise _BadDepth('Depth must be int >= 0')
-
-        if self.depth:
+        else:
             for _ in range(self.depth):
                 self.basepath = os.path.split(self.basepath)[0]
 
@@ -81,12 +91,11 @@ class Root(object):
 
 
 if __name__ == "__main__":
-    root2 = Root(2).paths()
+    root2 = Root(__file__, 2).paths()
     print(root2.path)
 
-    root1 = Root(1).paths()
-    print(root1.path)
+    root1 = Root(__file__, 1).paths()
+    print(root1.tests.testdir.Jetsons.filepaths)
 
-    root0 = Root(0).paths()
+    root0 = Root(__file__, 0).paths()
     print(root0.path)
-    print(root0.testdir.testsubdir.filepaths)
