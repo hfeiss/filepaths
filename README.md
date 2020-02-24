@@ -1,5 +1,5 @@
 # Purpose
-The filepaths module is designed to ease file path navigation in python scripts. It is particularly useful for iteratting through many files in a directory.
+The filepaths module is designed to ease file path navigation in python scripts. It is particularly useful for iterating through many files in a directory.
 
 # Use
 
@@ -21,7 +21,7 @@ for csv in paths.data.filepaths:
 ## Options
     file=None: for default behavior pass in __file__
     depth=0: how many levels up up from __file__ to start the walk down
-    ignore_hidden=True: whether or not to included hidden files/paths
+    ignore_hidden=True: whether or not to include hidden files/paths
     alt_path=False: if desired, specify an absolute path to another directory instead of file=__file__
 
 # Description
